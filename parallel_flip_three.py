@@ -73,58 +73,47 @@ def flip_img(i, args, label_files, flip_image_dir, flip_label_dir):
     # Image file
     image_file = os.path.join(args.data_dir, "{}.jpg".format(filename))
     
-#    img = plt.imread(image_file)
+    img = plt.imread(image_file)
     src_image_file = os.path.join(flip_image_dir, "{}.jpg".format(filename)) 
     
-    flip_image_file = os.path.join(flip_image_dir, "{}.jpg".format(filename)) 
-    flip_label_file = os.path.join(flip_label_dir, "{}.txt".format(filename))  
+    flip_image_file = os.path.join(flip_image_dir, "{}_flip.jpg".format(filename)) 
+    flip_label_file = os.path.join(flip_label_dir, "{}_flip.txt".format(filename))  
     print flip_image_file
     
     src = cv.imread(image_file);
     #dst = src
     #dst = cv.cv.CreateImage(cv.GetSize(src), src.depth, 3)
-    #dst = cv.flip(src, 1);
+    dst = cv.flip(src, 1);
+    cv.imwrite(flip_image_file, dst)
     #cv.imwrite(src_image_file, src)
-#    R,C,Ch = img.shape
+    R,C,Ch = img.shape
     
-#    print R, C, Ch
+    print R, C, Ch
     print label_file
     print flip_label_file
     with open(label_file) as txt:
         label_file = file(flip_label_file, "a+")
-        get=0
         for line in txt:
             lst = line.split()
-            #index = float(lst[0])
-            index = int(lst[0])
-            if index == 5:
-                label_file.write("{} ".format(int(0)))
-                label_file.write("{} ".format(lst[1]))
-                label_file.write("{} ".format(lst[2]))
-                label_file.write("{} ".format(lst[3]))
-                label_file.write("{}\n".format(lst[4]))
-                get=1
-            if index == 6:
-                label_file.write("{} ".format(int(0)))
-                label_file.write("{} ".format(lst[1]))
-                label_file.write("{} ".format(lst[2]))
-                label_file.write("{} ".format(lst[3]))
-                label_file.write("{}\n".format(lst[4]))
-                get=1
-            if index == 14:
-                label_file.write("{} ".format(int(1)))
-                label_file.write("{} ".format(lst[1]))
-                label_file.write("{} ".format(lst[2]))
-                label_file.write("{} ".format(lst[3]))
-                label_file.write("{}\n".format(lst[4]))
-                get=1
+            index = float(lst[0])
+            if ((index == float(0)) or (index == float(3)) or (index == float(14))):
+                if (index == float(3)):
+                    index = float(1);
+                if (index == float(14)):
+                    index = float(2);
+                w = float(lst[3])
+                h = float(lst[4])
+                x = 1. - float(lst[1])
+                y = float(lst[2])
+                label_file.write("{} ".format(index))
+                label_file.write("{} ".format(x))
+                label_file.write("{} ".format(y))
+                label_file.write("{} ".format(w))
+                label_file.write("{}\n".format(h))
             # img = drawBB(img,int(float(lst[1])*C),int(float(lst[2])*R),int(float(lst[3])*C),int(float(lst[4])*R))
             #img = drawBB2(img,float(lst[1]),float(lst[2]),float(lst[3]),float(lst[4]))
         label_file.close()
-        if get == 0:
-            os.remove(flip_label_file)
-        else:
-            cv.imwrite(flip_image_file, src)
+
 
 
 def main():
@@ -166,7 +155,7 @@ def main():
 
 
 
-    Parallel(n_jobs=72)(delayed(flip_img)(
+    Parallel(n_jobs=64)(delayed(flip_img)(
                 i, args, label_files, flip_image_dir, 
                 flip_label_dir
                 ) for i in range(len(label_files)))        

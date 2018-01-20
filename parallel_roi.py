@@ -73,65 +73,65 @@ def flip_img(i, args, label_files, flip_image_dir, flip_label_dir):
     # Image file
     image_file = os.path.join(args.data_dir, "{}.jpg".format(filename))
     
-#    img = plt.imread(image_file)
+    img = plt.imread(image_file)
     src_image_file = os.path.join(flip_image_dir, "{}.jpg".format(filename)) 
     
-    flip_image_file = os.path.join(flip_image_dir, "{}.jpg".format(filename)) 
-    flip_label_file = os.path.join(flip_label_dir, "{}.txt".format(filename))  
+    flip_image_file = os.path.join(flip_image_dir, "{}_flip.jpg".format(filename)) 
+    flip_label_file = os.path.join(flip_label_dir, "{}_flip.txt".format(filename))  
     print flip_image_file
     
-    src = cv.imread(image_file);
+    src = cv.imread(image_file)
     #dst = src
     #dst = cv.cv.CreateImage(cv.GetSize(src), src.depth, 3)
-    #dst = cv.flip(src, 1);
+    #dst = cv.flip(src, 1)
+    #cv.imwrite(flip_image_file, dst)
     #cv.imwrite(src_image_file, src)
-#    R,C,Ch = img.shape
+    R,C,Ch = img.shape
+
     
-#    print R, C, Ch
+    print R, C, Ch
     print label_file
     print flip_label_file
+    roi_image_file = ""
+    count = 0
     with open(label_file) as txt:
-        label_file = file(flip_label_file, "a+")
-        get=0
         for line in txt:
             lst = line.split()
-            #index = float(lst[0])
             index = int(lst[0])
-            if index == 5:
-                label_file.write("{} ".format(int(0)))
-                label_file.write("{} ".format(lst[1]))
-                label_file.write("{} ".format(lst[2]))
-                label_file.write("{} ".format(lst[3]))
-                label_file.write("{}\n".format(lst[4]))
-                get=1
-            if index == 6:
-                label_file.write("{} ".format(int(0)))
-                label_file.write("{} ".format(lst[1]))
-                label_file.write("{} ".format(lst[2]))
-                label_file.write("{} ".format(lst[3]))
-                label_file.write("{}\n".format(lst[4]))
-                get=1
-            if index == 14:
-                label_file.write("{} ".format(int(1)))
-                label_file.write("{} ".format(lst[1]))
-                label_file.write("{} ".format(lst[2]))
-                label_file.write("{} ".format(lst[3]))
-                label_file.write("{}\n".format(lst[4]))
-                get=1
-            # img = drawBB(img,int(float(lst[1])*C),int(float(lst[2])*R),int(float(lst[3])*C),int(float(lst[4])*R))
-            #img = drawBB2(img,float(lst[1]),float(lst[2]),float(lst[3]),float(lst[4]))
-        label_file.close()
-        if get == 0:
-            os.remove(flip_label_file)
-        else:
-            cv.imwrite(flip_image_file, src)
+            if index == 0:
+                roi_image_file = os.path.join(flip_image_dir, "{}_roi_{}_{}.png".format(filename,"head", str(count)))
+            elif index == 3:
+                roi_image_file = os.path.join(flip_image_dir, "{}_roi_{}_{}.png".format(filename,"hand", str(count)))
+            elif index == 14:
+                roi_image_file = os.path.join(flip_image_dir, "{}_roi_{}_{}.png".format(filename,"person", str(count)))
+            else:
+                continue
+            print roi_image_file , index
+            count = count + 1
+            #roi_file = file(roi_image_file, "a+")
+        
+
+            w = float(lst[3]) * C // 2
+            h = float(lst[4]) * R // 2
+            x = float(lst[1]) * C
+            y = float(lst[2]) * R
+
+            w = int(w)
+            h = int(h)
+            x = int(x)
+            y = int(y)
+            print w, h, x, y
+            roi = src[y-h:y+h ,x-w:x+w]
+            cv.imwrite(roi_image_file, roi)
+            #roi_file.close()
+
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--data_dir", type=str, required=True, help="Directory of images.")
     parser.add_argument("--label_dir", type=str, required=True, help="Directory of labels.")
-    parser.add_argument("--output_dir", type=str, default="outputs/flip", help="Directory of labels.")
+    parser.add_argument("--output_dir", type=str, default="outputs/roi", help="Directory of labels.")
     args = parser.parse_args()
 
     label_files = glob.glob("{}/*.txt".format(args.label_dir))
